@@ -34,17 +34,31 @@ plot.clf()
 #                       weight, acceleration, model year, origin)
 #        y: output data (mpg)
 X = df.filter([
-    "cylinders", "displacement", "horsepower", "weight", "acceleration",
-    "model year", "origin"
+    "cylinders", "displacement", "horsepower", 
+    "weight", "acceleration", "model year", "origin"
 ]).values
 y = df["mpg"].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
 
-# 5. Train a model using the data, then visualize horsepower correlation
-model = LinearRegression().fit(X, y)
+# 5. Train a model using the data
+model = LinearRegression().fit(X_train, y_train)
 y_pred = model.predict(X_test)
-print(np.transpose([X_train[:,2], y_train]).shape)
-train_df = pd.DataFrame(data=np.transpose([X_train[:,2], y_train]), columns=["horsepower", "mpg"])
-fig = sns.regplot(data=train_df).get_figure()
-fig.savefig("1-2-model-correlation.png")
+
+# 6. Display prediction accuracy for the test dataset
+accuracies = []
+for i in range(len(y_test)):
+    accuracies.append(100 * (y_pred[i] - y_test[i]) / y_test[i])
+accuracies_df = pd.DataFrame({"Index": range(len(y_test)), "% Error": accuracies})
+accuracies_df = accuracies_df.sort_values(["% Error"]).reset_index(drop=True)
+fig = sns.barplot(accuracies_df.index, accuracies_df["% Error"])
+fig.set(xticklabels=[])
+fig = fig.get_figure()
+fig.savefig("1-2-model-error.png")
+fig.clf()
+
+# 7. Visualize horsepower vs. mpg
+#    What's the correlation between a car's horsepower and its mpg?
+horsepower_df = pd.DataFrame(data=np.transpose([X_train[:, 2], y_train]), columns=["Horsepower", "MPG"])
+fig = sns.regplot(data=horsepower_df).get_figure()
+fig.savefig("1-2-horsepower-correlation.png")
 fig.clf()
